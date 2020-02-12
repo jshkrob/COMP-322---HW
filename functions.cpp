@@ -5,7 +5,7 @@ using namespace std;
 
 // global variables
 char winner;
-char gameBoard[27] = "";
+char gameBoard[27] = ""; // init game board
 char beginGame = '0';
 bool verbalMode = true;
 
@@ -20,12 +20,12 @@ bool isFull(char board[]) {
 }
 
 void greetAndInstruct() {
-    cout << "HELLO! Welcome to Tic=Tac-Toe challenge. Player verus Computer. The ultimate competition" << endl;
+    cout << "HELLO! Welcome to Tic=Tac-Toe challenge. Player verus Computer. The ultimate competition between human and machine." << endl;
     cout << "The board is numbered from 1 to 27 as per the following:" << endl;
     displayBoard(gameBoard);
     cout << "Player will start first. Simply input the number of the cell you want to occupy. Player's move is marked with X. Computer's move is marked with O" << endl;
     cout << "START? (y/n): ";
-    memset(gameBoard, ' ', 27); gameBoard[27] = '\0';
+    memset(gameBoard, ' ', 27); gameBoard[27] = '\0'; // fill gameboard with space characters
     cin >> beginGame;
 }
 
@@ -177,35 +177,35 @@ bool checkWinner(char board[]){
     }
 }
 
-// Attempted to use MINMAX: 
 
 // We will use a MINMAX algorithm for the computer's next move, with limit on
 // the number of branches available to the algorithm to predict its next move
-int minimax(char board[], int depth, bool maximizingPlayer) {
+int minimax(char board[], int depth, bool isMax) {
+    int bestMv = -1; 
     // assume Computer is MAXIMIZING player 
     if (depth == 0 || checkWinner(board)) {
         if (winner == 'O') {return 1;}
         else if (isFull(board)) {return 0;} 
         else {return -1;}
-    } else if (maximizingPlayer) {
-        int maxEval = -10000000;
+    } else if (isMax) { // max player is 'O'
+        int maxEval = -1000000000; 
         for(int i = 0; i < 27; i++) {
-            if (board[i] == '\0') {
-                char childBoard[30]; strncpy(childBoard, board, 27);
-                childBoard[i] = 'O';
-                int eval = minimax(childBoard, depth-1, false);
-                if (eval > maxEval) maxEval = eval;
+            if (board[i] == ' ') {
+                board[i] = 'O'; // test move
+                int eval = minimax(board, depth-1, false); // evaluate subtrees
+                if (eval > maxEval) { maxEval = eval; bestMv = i; }
+                board[i] = ' '; // revert back
             }
         }
         return maxEval;
-    } else {
-        int minEval = 10000000;
+    } else { // min player is 'X' i.e. trying to get lower score
+        int minEval = 1000000000;
         for(int i = 0; i < 27; i++) {
-            if (board[i] == '\0') {
-                char childBoard[30]; strncpy(childBoard, board, 27);
-                childBoard[i] = 'X';
-                int eval = minimax(childBoard, depth-1, true);
-                if (eval < minEval) minEval = eval;
+            if (board[i] == ' ') {
+                board[i] = 'X';
+                int eval = minimax(board, depth-1, true);
+                if (eval < minEval) { minEval = eval; bestMv = i; }
+                board[i] = ' ';
             }
         }
         return minEval;
@@ -213,6 +213,44 @@ int minimax(char board[], int depth, bool maximizingPlayer) {
     return 1;
 }
 
+void computerMoveMinMax(char board[]){
+    int score = -1000000, bestMv = -1, limitDepth  = 4;
+    bool didWin= false;
+    verbalMode = false;
+
+    // make most optimal move based on minmax
+    for(int i = 0; i < 27; i++) {
+        if (board[i] == ' ') {
+            board[i] = 'O'; // try this solution
+            int currScore = minimax(board, limitDepth, true); // returns +1 or -1
+            if (currScore > score) { score = currScore; bestMv = i; }
+            board[i] = ' ';
+        }
+    }
+
+    /* check if 'X' is about to win:
+    loop through all possible 'X' moves and find the one that is necissary for 'X'
+    to win and BLOCK that move:
+    */
+    for(int i = 0; i < 27; i++) {
+        if (board[i] == ' ') {
+            board[i] = 'X'; 
+            didWin = checkWinner(board);
+            if (didWin) {
+                // block this move
+                bestMv = i; 
+            }   
+            board[i] = ' ';            
+        }
+    }
+
+    // some move is made so use the best accumulated move:
+    board[bestMv] = 'O';
+    verbalMode = true;
+}
+
+
+// less algorithmically intensive approach:
 void computerMove(char board[]){
     int score = -10000000, bestMv = -1, limitDepth  = 3;
     bool didWin= false;
@@ -226,14 +264,6 @@ void computerMove(char board[]){
                 bestMv = i; 
             } 
             board[i] = ' '; // undo
-            /*
-            int currScore = minimax(board, limitDepth, true); // returns +1 or -1
-            cout << currScore << endl;
-            if (currScore >= score) {
-                score = currScore;
-                bestMv = i;
-            }
-            */
         }
     }
 

@@ -21,7 +21,8 @@ int main() {
             cout << "Player's move: " << endl;
             displayBoard(gameBoard);
 
-            computerMove(gameBoard); 
+            //computerMove(gameBoard); 
+            computerMoveMinMax(gameBoard);
             cout << "Computer's move: " << endl;
             displayBoard(gameBoard);
         }
